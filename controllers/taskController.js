@@ -26,7 +26,10 @@ const createTask = async (req, res, next) => {
   try {
     const title =
       typeof req.body?.title === "string" ? req.body.title.trim() : "";
-    if (!title) return next(createHttpError(400, "`title` bos olamaz."));
+
+    if (!title) {
+      return next(createHttpError(400, "`title` bos olamaz."));
+    }
 
     const id = randomUUID();
     const createdAt = new Date().toISOString();
@@ -37,6 +40,34 @@ const createTask = async (req, res, next) => {
     );
 
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /tasks/:id
+const updateTask = async (req, res, next) => {
+  try {
+    const title =
+      typeof req.body?.title === "string" ? req.body.title.trim() : "";
+
+    if (!title) {
+      return next(createHttpError(400, "`title` bos olamaz."));
+    }
+
+    const result = await pool.query(
+      `UPDATE tasks 
+       SET title = $1 
+       WHERE id = $2 AND user_id = $3 
+       RETURNING *`,
+      [title, req.params.id, req.userId]
+    );
+
+    if (result.rowCount === 0) {
+      return next(createHttpError(404, "Task bulunamadi"));
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
     next(err);
   }
@@ -63,5 +94,6 @@ const deleteTask = async (req, res, next) => {
 module.exports = {
   getTasks,
   createTask,
+  updateTask,
   deleteTask,
 };
