@@ -22,11 +22,12 @@ class HttpError extends Error {
 }
 
 // PostgreSQL connection pool (default: local taskdb)
-const pool = new Pool(
-  process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL }
-    : { database: "taskdb" }
-);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/taskdb",
+  ssl: process.env.DATABASE_URL
+    ? { rejectUnauthorized: false }
+    : false,
+});
 
 pool.on("error", (err) => {
   // eslint-disable-next-line no-console
