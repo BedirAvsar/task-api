@@ -5,8 +5,6 @@ const { Pool } = require("pg");
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-
 class HttpError extends Error {
   /**
    * @param {number} status
@@ -132,3 +130,9 @@ function shutdown(signal) {
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
