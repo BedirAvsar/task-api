@@ -7,6 +7,8 @@ const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
+
 class HttpError extends Error {
   constructor(status, message, details) {
     super(message);
@@ -50,23 +52,47 @@ function rowToTask(row) {
   };
 }
 
+// AUTH MIDDLEWARE (SAFE)
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next(new HttpError(401, "Token gerekli veya format hatalı"));
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.userId = decoded.userId;
+    next();
+  } catch {
+    next(new HttpError(401, "Geçersiz token"));
+  }
+}
+
 // ROUTES
 app.get("/", (req, res) => {
   res.send("API OK");
 });
 
+// GET TASKS
 app.get(
   "/tasks",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const result = await pool.query(
-      "SELECT * FROM tasks ORDER BY created_at DESC"
+      "SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC",
+      [req.userId]
     );
     res.json(result.rows.map(rowToTask));
   })
 );
 
+// CREATE TASK
 app.post(
   "/tasks",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const title = normalizeTitle(req.body?.title);
     if (!title) throw new HttpError(400, "`title` boş olamaz.");
@@ -75,26 +101,29 @@ app.post(
     const createdAt = new Date().toISOString();
 
     const result = await pool.query(
-      "INSERT INTO tasks (id, title, created_at) VALUES ($1, $2, $3) RETURNING *",
-      [id, title, createdAt]
+      "INSERT INTO tasks (id, title, created_at, user_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      [id, title, createdAt, req.userId]
     );
 
     res.status(201).json(rowToTask(result.rows[0]));
   })
 );
 
+// DELETE TASK
 app.delete(
   "/tasks/:id",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const id = req.params.id;
 
     const result = await pool.query(
-      "DELETE FROM tasks WHERE id = $1",
-      [id]
+      "DELETE FROM tasks WHERE id = $1 AND user_id = $2",
+      [id, req.userId]
     );
 
-    if (result.rowCount === 0)
-      throw new HttpError(404, "Task bulunamadı.");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "Task bulunamadı");
+    }
 
     res.json({ message: "deleted" });
   })
@@ -104,11 +133,13 @@ app.delete(
 app.post(
   "/auth/register",
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
     if (!email || !password) {
       throw new HttpError(400, "email ve password gerekli");
     }
+
+    email = email.toLowerCase().trim();
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const id = randomUUID();
@@ -125,7 +156,9 @@ app.post(
 app.post(
   "/auth/login",
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email.toLowerCase().trim();
 
     const result = await pool.query(
       "SELECT * FROM users WHERE email = $1",
@@ -146,7 +179,7 @@ app.post(
 
     const token = jwt.sign(
       { userId: user.id },
-      "SECRET_KEY",
+      JWT_SECRET,
       { expiresIn: "1d" }
     );
 
@@ -172,12 +205,7 @@ app.use((err, req, res, next) => {
   }
 
   res.status(status).json({
-    error: {
-      message,
-      ...(err instanceof HttpError && err.details !== undefined
-        ? { details: err.details }
-        : {}),
-    },
+    error: { message },
   });
 });
 
