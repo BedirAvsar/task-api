@@ -6,11 +6,6 @@ const app = express();
 app.use(express.json());
 
 class HttpError extends Error {
-  /**
-   * @param {number} status
-   * @param {string} message
-   * @param {unknown} [details]
-   */
   constructor(status, message, details) {
     super(message);
     this.name = "HttpError";
@@ -19,21 +14,22 @@ class HttpError extends Error {
   }
 }
 
-// PostgreSQL connection pool (default: local taskdb)
+// PostgreSQL connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/taskdb",
+  connectionString:
+    process.env.DATABASE_URL || "postgresql://localhost:5432/taskdb",
   ssl: process.env.DATABASE_URL
     ? { rejectUnauthorized: false }
     : false,
 });
 
 pool.on("error", (err) => {
-  // eslint-disable-next-line no-console
   console.error("Unexpected PostgreSQL client error", err);
 });
 
 function asyncHandler(fn) {
-  return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+  return (req, res, next) =>
+    Promise.resolve(fn(req, res, next)).catch(next);
 }
 
 function normalizeTitle(value) {
@@ -52,10 +48,11 @@ function rowToTask(row) {
   };
 }
 
+// ROUTES
+
 app.get(
   "/tasks",
   asyncHandler(async (req, res) => {
-    // As requested: SELECT * FROM tasks
     const result = await pool.query(
       "SELECT * FROM tasks ORDER BY created_at DESC"
     );
@@ -72,7 +69,6 @@ app.post(
     const id = randomUUID();
     const createdAt = new Date().toISOString();
 
-    // As requested: INSERT INTO tasks
     const result = await pool.query(
       "INSERT INTO tasks (id, title, created_at) VALUES ($1, $2, $3) RETURNING *",
       [id, title, createdAt]
@@ -86,24 +82,33 @@ app.delete(
   "/tasks/:id",
   asyncHandler(async (req, res) => {
     const id = req.params.id;
-    // As requested: DELETE FROM tasks WHERE id = $1
-    const result = await pool.query("DELETE FROM tasks WHERE id = $1", [id]);
-    if (result.rowCount === 0) throw new HttpError(404, "Task bulunamadı.");
+
+    const result = await pool.query(
+      "DELETE FROM tasks WHERE id = $1",
+      [id]
+    );
+
+    if (result.rowCount === 0)
+      throw new HttpError(404, "Task bulunamadı.");
+
     res.json({ message: "deleted" });
   })
 );
 
+// 404 handler
 app.use((req, res, next) => {
   next(new HttpError(404, "Route bulunamadı."));
 });
 
+// error handler
 app.use((err, req, res, next) => {
   const status = err instanceof HttpError ? err.status : 500;
   const message =
-    err instanceof HttpError ? err.message : "Beklenmeyen bir hata oluştu.";
+    err instanceof HttpError
+      ? err.message
+      : "Beklenmeyen bir hata oluştu.";
 
   if (status >= 500) {
-    // eslint-disable-next-line no-console
     console.error(err);
   }
 
@@ -112,18 +117,13 @@ app.use((err, req, res, next) => {
       message,
       ...(err instanceof HttpError && err.details !== undefined
         ? { details: err.details }
-        : null),
+        : {}),
     },
   });
 });
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running on port ${PORT}`);
-});
-
+// graceful shutdown
 function shutdown(signal) {
-  // eslint-disable-next-line no-console
   console.log(`${signal} received, shutting down...`);
   pool.end().finally(() => process.exit(0));
 }
