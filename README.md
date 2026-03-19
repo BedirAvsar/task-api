@@ -160,9 +160,7 @@ task-api
 
 Base URL:
 
-```
 https://task-api-wo1v.onrender.com
-```
 
 ---
 
@@ -177,10 +175,13 @@ https://task-api-wo1v.onrender.com
 ---
 
 ## Screenshot
+
 Docker image running locally:
 
 ![Docker Screenshot](https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b)
 
+---
+
 ## Status
 
-This project is a learning-focused backend application and is not production-ready.
+This project is a learning-focused backend application and may require additional improvements for production use.
