@@ -49,7 +49,9 @@ function rowToTask(row) {
 }
 
 // ROUTES
-
+app.get("/", (req, res) => {
+  res.send("API OK");
+});
 app.get(
   "/tasks",
   asyncHandler(async (req, res) => {
