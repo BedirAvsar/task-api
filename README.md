@@ -175,10 +175,14 @@ https://task-api-wo1v.onrender.com
 - Basic validation and error handling are implemented, but not exhaustive.
 
 ---
-```md
+
 ## Screenshot
 Docker image running locally:
-<img width="953" height="573" alt="Ekran Resmi 2026-03-20 00 54 35" src="https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b" />
+
+![Docker Screenshot](https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b)
+
+src="https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b" />
+
 ## Status
 
 This project is a learning-focused backend application and is not production-ready.
