@@ -1,6 +1,8 @@
 const express = require("express");
 const { randomUUID } = require("crypto");
 const { Pool } = require("pg");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
@@ -52,6 +54,7 @@ function rowToTask(row) {
 app.get("/", (req, res) => {
   res.send("API OK");
 });
+
 app.get(
   "/tasks",
   asyncHandler(async (req, res) => {
@@ -94,6 +97,60 @@ app.delete(
       throw new HttpError(404, "Task bulunamadı.");
 
     res.json({ message: "deleted" });
+  })
+);
+
+// AUTH ROUTES
+app.post(
+  "/auth/register",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      throw new HttpError(400, "email ve password gerekli");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const id = randomUUID();
+
+    const result = await pool.query(
+      "INSERT INTO users (id, email, password) VALUES ($1, $2, $3) RETURNING id, email",
+      [id, email, hashedPassword]
+    );
+
+    res.status(201).json(result.rows[0]);
+  })
+);
+
+app.post(
+  "/auth/login",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      throw new HttpError(401, "Geçersiz email veya password");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      throw new HttpError(401, "Geçersiz email veya password");
+    }
+
+    const token = jwt.sign(
+      { userId: user.id },
+      "SECRET_KEY",
+      { expiresIn: "1d" }
+    );
+
+    res.json({ token });
   })
 );
 
