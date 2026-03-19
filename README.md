@@ -181,8 +181,6 @@ Docker image running locally:
 
 ![Docker Screenshot](https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b)
 
-src="https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b" />
-
 ## Status
 
 This project is a learning-focused backend application and is not production-ready.
