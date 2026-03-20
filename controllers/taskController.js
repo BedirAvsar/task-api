@@ -1,3 +1,5 @@
+const { createTaskSchema } = require("../validation/taskSchema");
+
 const pool = require("../db");
 const { randomUUID } = require("crypto");
 
@@ -24,12 +26,13 @@ const getTasks = async (req, res, next) => {
 // POST /tasks
 const createTask = async (req, res, next) => {
   try {
-    const title =
-      typeof req.body?.title === "string" ? req.body.title.trim() : "";
+    const parsed = createTaskSchema.safeParse(req.body);
 
-    if (!title) {
-      return next(createHttpError(400, "`title` bos olamaz."));
+    if (!parsed.success) {
+      return next(createHttpError(400, parsed.error.errors[0].message));
     }
+
+    const { title } = parsed.data;
 
     const id = randomUUID();
     const createdAt = new Date().toISOString();
