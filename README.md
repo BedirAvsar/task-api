@@ -1,18 +1,23 @@
 # Task API (Node.js + PostgreSQL)
 
-A simple REST API for managing user-specific tasks. This project demonstrates a backend application with authentication, database integration, and basic API structure using Node.js and PostgreSQL.
+A backend REST API for task management built with Node.js, Express, and PostgreSQL.  
+This project focuses on clean structure, authentication, testing, and basic production practices.
 
 ---
 
 ## Features
 
-- User registration and login (JWT-based authentication)
-- Create task
-- List tasks (user-specific)
-- Delete task
+- JWT-based authentication (register & login)
+- User-specific task management
+- Create, list, and delete tasks
 - PostgreSQL integration using raw SQL (pg)
-- Error handling middleware
+- Input validation
+- Centralized error handling middleware
 - Environment-based configuration
+- Docker support
+- Automated tests (Jest)
+- CI pipeline with GitHub Actions
+- Isolated test database setup
 
 ---
 
@@ -24,43 +29,41 @@ A simple REST API for managing user-specific tasks. This project demonstrates a 
 - pg (node-postgres)
 - JSON Web Token (JWT)
 - bcrypt
+- Jest
+- Docker
+- GitHub Actions
+
+---
+
+## Project Structure
+
+```
+controllers/        # Request handlers
+routes/             # API routes
+middleware/         # Auth and error handling
+db/                 # Database connection and queries
+validation/         # Input validation
+tests/              # Tests
+.github/workflows/  # CI pipeline
+```
 
 ---
 
 ## Installation
 
-Clone the repository:
-
 ```bash
 git clone https://github.com/BedirAvsar/task-api.git
 cd task-api
-```
-
-Install dependencies:
-
-```bash
 npm install
-```
-
-Run the server:
-
-```bash
-node index.js
-```
-
-Server will start on:
-
-```
-http://localhost:3000
 ```
 
 ---
 
 ## Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file:
 
-```env
+```
 DATABASE_URL=postgresql://localhost:5432/taskdb
 JWT_SECRET=your_secret_key
 PORT=3000
@@ -69,8 +72,6 @@ PORT=3000
 ---
 
 ## Database Setup
-
-Make sure PostgreSQL is running, then:
 
 ```sql
 CREATE DATABASE taskdb;
@@ -93,85 +94,120 @@ CREATE TABLE tasks (
 
 ---
 
-## API Endpoints
+## Running the Application
 
-### Auth
-
-#### POST /auth/register
-Register a new user.
-
-```json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
+```bash
+node index.js
 ```
 
-#### POST /auth/login
-Authenticate user and return JWT.
+Server runs on:
 
-```json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
 ```
-### Authorization header example:
-Authorization: Bearer your_token_here
----
-
-### Tasks
-
-#### GET /tasks
-Returns all tasks for the authenticated user.
-
-#### POST /tasks
-Create a new task.
-
-```json
-{
-  "title": "my task"
-}
+http://localhost:3000
 ```
-
-#### DELETE /tasks/:id
-Delete a task by ID (only if it belongs to the authenticated user).
 
 ---
 
 ## Docker
 
-Build the image:
+Build image:
 
 ```bash
 docker build -t task-api .
 ```
 
-Run the container:
+Run container:
 
 ```bash
-docker run -p 3000:3000 \
---env-file .env \
-task-api
+docker run -p 3000:3000 --env-file .env task-api
 ```
+
 ---
 
+## Testing
+
+```bash
+npm test
+```
+
+- Uses a separate test database
+- Runs automatically in CI pipeline
+
+---
+
+## CI Pipeline
+
+GitHub Actions pipeline includes:
+
+- Dependency installation
+- PostgreSQL test database setup
+- Running test suite
+
+---
 
 ## Deployment
 
 Base URL:
 
+```
 https://task-api-wo1v.onrender.com
+```
+
+---
+
+## API Endpoints
+
+### Auth
+
+POST /auth/register
+
+```
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+```
+
+POST /auth/login
+
+Returns JWT token.
+
+---
+
+### Tasks
+
+GET /tasks  
+Returns tasks for authenticated user
+
+POST /tasks
+
+```
+{
+  "title": "my task"
+}
+```
+
+DELETE /tasks/:id  
+Deletes task if it belongs to the user
+
+---
+
+## Authentication
+
+All task endpoints require:
+
+```
+Authorization: Bearer <token>
+```
 
 ---
 
 ## Notes
 
-- All task endpoints require a valid JWT token in the `Authorization` header.
-- Passwords are hashed using bcrypt before storing.
-- Each user can only access their own tasks.
-- This project uses raw SQL queries via `pg` (no ORM).
-- Basic validation and error handling are implemented, but not exhaustive.
+- Passwords are hashed using bcrypt
+- Each user can only access their own tasks
+- Uses raw SQL instead of ORM
+- Basic validation and error handling are implemented
 
 ---
 
@@ -181,8 +217,19 @@ Docker image running locally:
 
 ![Docker Screenshot](https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b)
 
----
-
 ## Status
 
-This project is a learning-focused backend application and may require additional improvements for production use.
+This project is suitable for learning and demonstrates backend fundamentals.  
+Some improvements can still be made for production use:
+
+- Advanced validation
+- Logging
+- Rate limiting
+- Caching (Redis)
+- Pagination and filtering
+
+---
+
+## Author
+
+Bedir Avşar
