@@ -28,16 +28,16 @@ jobs:
       JWT_SECRET: testsecret
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Node kur
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Paketleri yükle
         run: npm install
 
-      - name: Run tests
+      - name: Testleri çalıştır
         run: NODE_ENV=test npm test
