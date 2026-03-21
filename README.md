@@ -123,6 +123,21 @@ docker run -p 3000:3000 --env-file .env task-api
 ```
 
 ---
+## Docker Image (GitHub Container Registry)
+
+You can pull and run the prebuilt Docker image directly:
+
+```bash
+docker pull ghcr.io/bediravsar/task-api:latest
+
+docker run -p 3000:3000 \
+  -e DATABASE_URL=your_database_url \
+  -e JWT_SECRET=your_secret \
+  ghcr.io/bediravsar/task-api:latest
+```
+
+This image is automatically built and published via GitHub Actions.
+----
 
 ## Testing
 
