@@ -1,6 +1,9 @@
-const { createTaskSchema } = require("../validation/taskSchema");
-
-console.log("SCHEMA:", createTaskSchema);
+const taskSchemaModule = require("../validation/taskSchema");
+const createTaskSchema =
+  taskSchemaModule.createTaskSchema ||
+  taskSchemaModule.default?.createTaskSchema ||
+  taskSchemaModule.default ||
+  taskSchemaModule;
 
 const pool = require("../db");
 const { randomUUID } = require("crypto");
@@ -28,10 +31,18 @@ const getTasks = async (req, res, next) => {
 // POST /tasks
 const createTask = async (req, res, next) => {
   try {
+    if (!createTaskSchema || typeof createTaskSchema.safeParse !== "function") {
+      return next(
+        createHttpError(500, "Task schema yuklenemedi veya gecersiz.")
+      );
+    }
+
     const parsed = createTaskSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return next(createHttpError(400, parsed.error.errors[0].message));
+      const issues = parsed.error?.issues || parsed.error?.errors || [];
+      const firstMessage = issues[0]?.message || "Gecersiz veri.";
+      return next(createHttpError(400, firstMessage));
     }
 
     const { title } = parsed.data;
