@@ -23,8 +23,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # GHCR: image name must be lowercase (owner/repo from GitHub can contain capitals)
+      - name: Set image tag (lowercase)
+        run: |
+          echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):latest" >> $GITHUB_ENV
+
       - name: Build image
-        run: docker build -t ghcr.io/${{ github.repository }}:latest .
+        run: docker build -t "${IMAGE_NAME}" .
 
       - name: Push image
-        run: docker push ghcr.io/${{ github.repository }}:latest
+        run: docker push "${IMAGE_NAME}"
