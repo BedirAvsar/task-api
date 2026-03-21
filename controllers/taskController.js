@@ -1,5 +1,7 @@
 const { createTaskSchema } = require("../validation/taskSchema");
 
+console.log("SCHEMA:", createTaskSchema);
+
 const pool = require("../db");
 const { randomUUID } = require("crypto");
 
