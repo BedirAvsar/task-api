@@ -9,7 +9,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const authRoutes = require("./routes/authRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
-app.use("/", taskRoutes);
+app.use("/tasks", taskRoutes);
 app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
