@@ -37,7 +37,6 @@ jobs:
 
       - run: npm install
 
-      # 🔥 tablo oluştur (EN KRİTİK KISIM)
       - run: |
           sudo apt-get install -y postgresql-client
           psql $DATABASE_URL -c "

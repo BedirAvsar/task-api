@@ -10,9 +10,10 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 
-router.get("/tasks", authMiddleware, getTasks);
-router.post("/tasks", authMiddleware, createTask);
-router.put("/tasks/:id", authMiddleware, updateTask);
-router.delete("/tasks/:id", authMiddleware, deleteTask);
+// Mounted at app.use("/tasks", ...) → paths are /tasks, /tasks/:id
+router.get("/", authMiddleware, getTasks);
+router.post("/", authMiddleware, createTask);
+router.put("/:id", authMiddleware, updateTask);
+router.delete("/:id", authMiddleware, deleteTask);
 
 module.exports = router;
