@@ -1,8 +1,8 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
-    branches: [main]
+  pull_request:
 
 jobs:
   test:
@@ -14,30 +14,45 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
+          POSTGRES_DB: taskdb
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
+          --health-cmd="pg_isready -U postgres"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/taskdb
       JWT_SECRET: testsecret
+      NODE_ENV: test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Node kur
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Paketleri yükle
-        run: npm install
+      - run: npm install
 
-      - name: Testleri çalıştır
-        run: NODE_ENV=test npm test
+      # 🔥 tablo oluştur (EN KRİTİK KISIM)
+      - run: |
+          sudo apt-get install -y postgresql-client
+          psql $DATABASE_URL -c "
+          CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+          );"
+
+          psql $DATABASE_URL -c "
+          CREATE TABLE IF NOT EXISTS tasks (
+            id UUID PRIMARY KEY,
+            title TEXT NOT NULL,
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            created_at TIMESTAMP NOT NULL
+          );"
+
+      - run: npm test
