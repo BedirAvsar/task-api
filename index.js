@@ -5,7 +5,6 @@ const app = express();
 
 app.use(express.json());
 
-// routes
 const taskRoutes = require("./routes/taskRoutes");
 const authRoutes = require("./routes/authRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
@@ -13,7 +12,6 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 app.use("/", taskRoutes);
 app.use("/auth", authRoutes);
 
-// health check
 app.get("/", (req, res) => {
   res.send("API OK");
 });
@@ -23,6 +21,10 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
