@@ -116,7 +116,7 @@ Authenticate user and return JWT.
   "password": "password"
 }
 ```
-###Authorization header example:
+### Authorization header example:
 Authorization: Bearer your_token_here
 ---
 
