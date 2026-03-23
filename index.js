@@ -1,9 +1,20 @@
 const express = require("express");
 require("dotenv").config();
 
+const rateLimit = require("express-rate-limit");
+
 const app = express();
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    error: { message: "Too many requests, please try again later." },
+  },
+});
+
 app.use(express.json());
+app.use(limiter);
 
 const taskRoutes = require("./routes/taskRoutes");
 const authRoutes = require("./routes/authRoutes");
