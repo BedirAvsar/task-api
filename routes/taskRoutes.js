@@ -10,7 +10,6 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Mounted at app.use("/tasks", ...) → paths are /tasks, /tasks/:id
 router.get("/", authMiddleware, getTasks);
 router.post("/", authMiddleware, createTask);
 router.put("/:id", authMiddleware, updateTask);

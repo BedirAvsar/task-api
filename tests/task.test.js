@@ -51,6 +51,6 @@ describe("Task API", () => {
       .send({ title: "valid task" });
 
     expect(res.statusCode).toBe(201);
-    expect(res.body.title).toBe("valid task");
+    expect(res.body.data.title).toBe("valid task");
   });
 });
