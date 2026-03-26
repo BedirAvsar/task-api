@@ -1,25 +1,16 @@
-# Task API (Node.js + PostgreSQL)
+# Task API
 
-A REST API for task management built with Node.js, Express, and PostgreSQL.  
-This project focuses on clean architecture, authentication, testing, and basic production practices.
+A production-oriented REST API for task management built with Node.js, Express, and PostgreSQL.
+
+This project focuses on clean architecture, authentication, testing, and real-world backend practices.
 
 ---
 
-## Features
+## Overview
 
-- JWT-based authentication (register & login)
-- User-specific task management
-- Create, list, update, and delete tasks
-- PostgreSQL integration using raw SQL (pg)
-- Input validation with Zod
-- Centralized error handling (middleware)
-- Rate limiting (express-rate-limit)
-- HTTP request logging (Morgan)
-- Environment-based configuration
-- Docker and Docker Compose support
-- Automated tests (Jest & Supertest)
-- CI pipeline with GitHub Actions
-- Isolated test database setup
+Task API is designed to simulate a real backend system rather than a simple CRUD application.
+
+It includes authentication, validation, testing, containerization, and CI integration.
 
 ---
 
@@ -40,126 +31,208 @@ This project focuses on clean architecture, authentication, testing, and basic p
 
 ---
 
-## Project Structure
+## Features
 
-```
-controllers/        # Request handlers
-routes/             # API routes
-middleware/         # Authentication and error handling
-db/                 # Database connection and queries
-validation/         # Zod validation schemas
-tests/              # Test files
-.github/workflows/  # CI configuration
+- JWT-based authentication (register & login)
+- User-specific task management
+- Create, read, update, and delete tasks
+- Input validation using Zod
+- Centralized error handling
+- Rate limiting for API protection
+- HTTP request logging
+- Environment-based configuration
+- Dockerized application
+- Automated testing
+- CI pipeline with GitHub Actions
+
+---
+
+## Architecture
+
+The project follows a layered structure:
+
+Controller → Service → Repository → Database
+
+```mermaid
+graph TD
+    Client -->|HTTP Request| Controller
+    Controller --> Service
+    Service --> Repository
+    Repository --> Database
+
+    Service --> Validation
+    Controller --> Middleware
+
+    Middleware --> Auth[Authentication Middleware]
+    Middleware --> Error[Error Handler]
+
+    Service --> Logging
 ```
 
 ---
 
-## Installation
+## Authentication Flow
 
-```bash
-git clone https://github.com/BedirAvsar/task-api.git
-cd task-api
-npm install
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant DB
+
+    Client->>API: POST /auth/register
+    API->>DB: Save user (hashed password)
+    API-->>Client: Success response
+
+    Client->>API: POST /auth/login
+    API->>DB: Validate credentials
+    API-->>Client: JWT Token
+
+    Client->>API: Request with JWT
+    API->>API: Verify Token (Middleware)
+    API-->>Client: Protected resource
 ```
 
 ---
 
-## Environment Variables
+## API Examples
 
-Create a `.env` file:
+### Register
 
-```env
-DATABASE_URL=postgresql://localhost:5432/taskdb
-JWT_SECRET=your_secret_key
-PORT=3000
+Request:
+
+```http
+POST /auth/register
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "User created successfully"
+}
 ```
 
 ---
 
-## Database Setup
+### Login
 
-```sql
-CREATE DATABASE taskdb;
+Request:
 
-\c taskdb
+```http
+POST /auth/login
+Content-Type: application/json
+```
 
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL
-);
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
 
-CREATE TABLE tasks (
-  id UUID PRIMARY KEY,
-  title TEXT NOT NULL,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP NOT NULL
-);
+Response:
+
+```json
+{
+  "token": "jwt_token_here"
+}
 ```
 
 ---
 
-## Running the Application
+### Create Task
 
-```bash
-npm start
+Request:
+
+```http
+POST /tasks
+Authorization: Bearer <token>
+Content-Type: application/json
 ```
 
-Development mode:
-
-```bash
-npm run dev
+```json
+{
+  "title": "Complete backend project"
+}
 ```
 
-Server runs on:
+Response:
 
-```
-http://localhost:3000
+```json
+{
+  "id": "uuid",
+  "title": "Complete backend project",
+  "created_at": "timestamp"
+}
 ```
 
 ---
 
-## Docker
+### Get Tasks
 
-```bash
-docker build -t task-api .
+Request:
 
-docker run -p 3000:3000 --env-file .env task-api
+```http
+GET /tasks
+Authorization: Bearer <token>
+```
+
+Response:
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Complete backend project",
+    "created_at": "timestamp"
+  }
+]
 ```
 
 ---
 
-## Docker Image (GitHub Container Registry)
+## Live Demo
 
-You can pull and run the prebuilt Docker image:
-
-```bash
-docker pull ghcr.io/bediravsar/task-api:latest
-
-docker run -p 3000:3000 \
-  -e DATABASE_URL=your_database_url \
-  -e JWT_SECRET=your_secret \
-  ghcr.io/bediravsar/task-api:latest
-```
-
-The image is automatically built and published via GitHub Actions.
+https://task-api-wo1v.onrender.com/
 
 ---
 
-## Testing
+## Usage Notes
 
-```bash
-npm test
+- All protected routes require a valid JWT token  
+- Include the token in the Authorization header:
+
+```
+Authorization: Bearer <token>
 ```
 
-- Uses a separate test database  
-- Runs automatically in the CI pipeline  
+- Rate limiting is enabled to prevent abuse  
+- Requests and errors are logged for monitoring  
+
+---
+
+## Error Response Format
+
+```json
+{
+  "error": "Error message",
+  "status": 400
+}
+```
 
 ---
 
 ## CI Pipeline
 
-GitHub Actions pipeline includes:
+The GitHub Actions pipeline includes:
 
 - Installing dependencies  
 - Setting up PostgreSQL test database  
@@ -167,97 +240,22 @@ GitHub Actions pipeline includes:
 
 ---
 
-## API Endpoints
+## Future Improvements
 
-### Auth
-
-POST /auth/register
-
-```json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
-```
-
-POST /auth/login  
-Returns a JWT token.
+- Redis caching for performance  
+- Pagination and advanced filtering  
+- Role-based authorization  
+- API documentation with Swagger  
 
 ---
 
-### Tasks
+## License
 
-All task endpoints require authentication:
-
-```
-Authorization: Bearer <token>
-```
-
-GET /tasks  
-Returns tasks for the authenticated user
-
-POST /tasks
-
-```json
-{
-  "title": "Task title"
-}
-```
-
-PUT /tasks/:id  
-Updates a task
-
-DELETE /tasks/:id  
-Deletes a task
-
----
-
-## Example Query Parameters (Planned)
-
-The API is designed to support pagination and filtering for scalability.
-
-Example:
-
-```
-GET /tasks?page=1&limit=10&search=test
-```
-
-This allows:
-
-- Pagination with page and limit  
-- Basic filtering with search  
-
----
-
-## Notes
-
-- Passwords are hashed using bcrypt  
-- Users can only access their own data  
-- Raw SQL is used instead of an ORM  
-- Validation and error handling are centralized  
-- Rate limiting and logging are implemented  
-
----
-
-## Screenshot
-
-Docker image running locally:
-
-![Docker Screenshot](https://github.com/user-attachments/assets/7203a4f7-036d-4762-a25e-6f5edc56fb4b)
-
----
-
-## Status
-
-This project demonstrates backend fundamentals with a production-oriented approach.
-
-Possible improvements:
-
-- Caching (Redis)  
-- Pagination and filtering  
+This project is for educational and portfolio purposes.
 
 ---
 
 ## Author
 
-Bedir Avşar
+Bedir Avşar  
+Backend Developer
