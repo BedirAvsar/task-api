@@ -173,6 +173,18 @@ Authorization: Bearer <token>
 }
 ```
 
+### Dashboard (Task Table)
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Edit Task Modal
+![Edit Modal](docs/screenshots/edit_modal.png)
+
+### Success Notifications
+![Success Toast](docs/screenshots/toast.png)
+
+### Login Page
+![Login](docs/screenshots/login.png)
+
 ## Database Schema
 The database operates on a relational model enforcing strict foreign key constraints and cascading deletions.
 
